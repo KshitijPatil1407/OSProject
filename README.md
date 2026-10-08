@@ -1,4 +1,13 @@
-# Agent #7 — Semantic File Search Agent
+# Team No #7 — Semantic File Search Agent
+File System & Storage Agents
+
+7. Semantic File Search Agent
+Problem Statement - Prompt Example: "Find the config file I edited yesterday that has the database password in it."
+Functionality: Replaces complex find and grep pipelines. Searches based on time, metadata, and content.
+How to Achieve It: Expose tools like search_by_metadata(time, type) and search_file_content(regex). The LLM converts the user's natural language into the optimal search strategy.
+
+
+
 
 Part of the class Agentic Shell. This agent replaces hand-written `find` and
 `grep` pipelines: the user describes a file in their own words, Claude decides
