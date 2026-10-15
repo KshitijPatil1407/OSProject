@@ -119,6 +119,63 @@ instead; both backends return identical results.
 
 (Or `source .venv/bin/activate` once and drop the `.venv/bin/` prefix.)
 
+## Running in Docker
+
+Useful for a teammate on Windows or macOS, and for a reproducible demo at the
+review. The image bundles `ripgrep` and `file`, so content search runs on the
+fast backend.
+
+```bash
+docker build --build-arg UID=$(id -u) --build-arg GID=$(id -g) -t sfs-agent .
+```
+
+**Verify the image** — the tests need no API key, so this is a clean check that
+everything inside works:
+
+```bash
+docker run --rm sfs-agent
+```
+
+**The demo**, fully self-contained (it builds its own throwaway tree):
+
+```bash
+docker run --rm sfs-agent python demo.py --tools-only     # no API key
+docker run --rm --env-file .env sfs-agent python demo.py  # full agent
+```
+
+**Searching your real files.** This is the part that needs care: a container
+sees its *own* filesystem, so without a mount the agent will search an empty
+image and truthfully report finding nothing. Bind-mount the directory you want
+searched at `/mnt/host`, read-only:
+
+```bash
+docker run --rm -it \
+  --env-file .env \
+  -v "$HOME:/mnt/host:ro" \
+  sfs-agent \
+  python -m semantic_search "find config files I edited this week"
+```
+
+- `:ro` makes the read-only design structural — the kernel refuses writes even
+  if something in the stack tries. Worth mentioning at the review.
+- `SFS_ALLOWED_ROOTS` is already set to `/mnt/host` in the image, so the
+  sandbox lines up with the mount with no extra flags.
+- Paths in the answers will read `/mnt/host/...`; that is the container's view
+  of your `$HOME`.
+- `--build-arg UID=$(id -u)` matters — the container user must share your UID
+  or your files will be unreadable inside it.
+
+**Interactive REPL:**
+
+```bash
+docker run --rm -it --env-file .env -v "$HOME:/mnt/host:ro" sfs-agent \
+  python -m semantic_search -v
+```
+
+Note that `--env-file .env` is how the key gets in. It is never baked into an
+image layer — `.env` is in `.dockerignore` precisely so a published image can't
+leak it.
+
 ## Safety model
 
 The LLM chooses every argument, so every argument is treated as untrusted:

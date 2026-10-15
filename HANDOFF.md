@@ -117,6 +117,16 @@ equivalents rather than assuming these shapes transfer.
 - **The API key comes from `.env`** at the project root, loaded by
   `semantic_search/config.py`. An exported `ANTHROPIC_API_KEY` overrides the file.
   `.env` is gitignored; `.env.example` documents the format.
+- **Docker is supported** (`docker build --build-arg UID=$(id -u) -t sfs-agent .`).
+  One non-obvious thing: a container sees its own filesystem, so searching real
+  files needs `-v "$HOME:/mnt/host:ro"`. The image presets
+  `SFS_ALLOWED_ROOTS=/mnt/host` to line the sandbox up with that mount. See
+  README § Running in Docker.
+- **Native Windows is not supported.** `metadata.py` imports `pwd` (Unix-only),
+  `safety.py` splits `SFS_ALLOWED_ROOTS` on `:` (breaks `C:\...`), and the test
+  suite creates a symlink (needs Developer Mode). Use WSL or Docker instead —
+  and note the project is *about* Linux syscalls, so a Windows port would
+  undercut the assignment.
 
 ## Rules for changes
 

@@ -1,0 +1,12 @@
+.git/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# never bake credentials into an image layer
+.env
+*.key
+
+docs/
+*.md
