@@ -75,9 +75,26 @@ the search by depth and wall-clock time, detect directory cycles via
 ## Setup
 
 ```bash
-pip install -r requirements.txt
-export ANTHROPIC_API_KEY=sk-ant-...
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+
+cp .env.example .env        # then put your key in it
 ```
+
+Use a venv rather than installing system-wide. On a rolling-release distro a
+Python point-upgrade (3.11 → 3.14) empties the system `site-packages` and your
+imports vanish; a venv is unaffected.
+
+Your `.env` needs one line:
+
+```
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+It's gitignored, so it never leaves your machine. An exported
+`ANTHROPIC_API_KEY` in your shell takes precedence over the file if you'd
+rather not keep a key on disk. `.env.example` lists the optional settings
+(`SFS_EFFORT`, `SFS_MAX_ROUNDS`, `SFS_ALLOWED_ROOTS`).
 
 Install `ripgrep` too if you can (`sudo pacman -S ripgrep`) — content search is
 roughly 10–50× faster through it. Without it the pure-Python scanner runs
@@ -87,18 +104,20 @@ instead; both backends return identical results.
 
 ```bash
 # one-shot
-python -m semantic_search "which log files are bigger than 100MB?"
+.venv/bin/python -m semantic_search "which log files are bigger than 100MB?"
 
 # interactive, with the tool calls echoed to stderr
-python -m semantic_search -v
+.venv/bin/python -m semantic_search -v
 
 # scripted demo against a throwaway tree (never touches your real files)
-python demo.py                 # full agent
-python demo.py --tools-only    # the tool chain with no API calls
+.venv/bin/python demo.py                 # full agent
+.venv/bin/python demo.py --tools-only    # the tool chain with no API calls
 
 # tool tests — real system calls, no API key needed
-python tests/test_tools.py
+.venv/bin/python tests/test_tools.py
 ```
+
+(Or `source .venv/bin/activate` once and drop the `.venv/bin/` prefix.)
 
 ## Safety model
 
@@ -161,6 +180,7 @@ that should land here ("where is the file that…", "find the config with…",
 ```
 semantic_search/
   agent.py      tool-use loop, system prompt, CLI and REPL
+  config.py     .env loader (no external dependency)
   registry.py   TOOLS schemas + dispatch()
   metadata.py   search_by_metadata, stat_file, list_directory
   content.py    search_file_content, preview_file, identify_file

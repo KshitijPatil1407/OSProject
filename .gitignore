@@ -6,3 +6,4 @@ venv/
 # never commit credentials
 .env
 *.key
+.HANDOFF.md

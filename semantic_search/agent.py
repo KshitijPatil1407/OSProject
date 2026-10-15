@@ -25,8 +25,13 @@ from typing import Any
 
 import anthropic
 
+from .config import PROJECT_ROOT, load_env
 from .registry import TOOLS, dispatch
 from .safety import MAX_RESULTS, allowed_roots
+
+# Read .env at import time so SFS_EFFORT and SFS_MAX_ROUNDS below can come
+# from the file too, not just the API key.
+load_env()
 
 MODEL = "claude-opus-5"
 MAX_TOKENS = 64_000
@@ -113,10 +118,14 @@ def _build_system() -> list[dict[str, Any]]:
 
 
 def _client() -> anthropic.Anthropic:
+    env_file = load_env()
     if not (os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")):
+        where = f" (read {env_file}, but it has no ANTHROPIC_API_KEY)" if env_file else ""
         raise SystemExit(
-            "No Anthropic credentials found. Export ANTHROPIC_API_KEY, or run "
-            "`ant auth login` if you have the Anthropic CLI installed."
+            f"No Anthropic credentials found{where}.\n"
+            f"Create {PROJECT_ROOT / '.env'} containing:\n"
+            "    ANTHROPIC_API_KEY=sk-ant-...\n"
+            "or export ANTHROPIC_API_KEY in your shell."
         )
     return anthropic.Anthropic()
 
