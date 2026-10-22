@@ -7,3 +7,9 @@ venv/
 .env
 *.key
 .HANDOFF.md
+
+# Raw agent output from the Review 3 evaluation. These are real answers about a
+# real home directory, so they name personal files (coursework PDFs and the
+# like). The report quotes the parts that matter; the raw captures stay local.
+docs/evidence/
+docs/figures/*.txt
